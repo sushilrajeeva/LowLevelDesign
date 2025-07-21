@@ -140,43 +140,34 @@ class PizzaDecorator(Pizza):
         return self._base_pizza.get_cost()
     
 
-# Crust Decorators
-class CrustPizza(PizzaDecorator):
-    def __init__(self, base_pizza: Pizza, crust: Crust):
+class AddOnPizza(PizzaDecorator):
+    def __init__(self, base_pizza: Pizza, priced_item: PricedItem):
         super().__init__(base_pizza)
-        self._crust = crust
+        self._add_on = priced_item
 
     def get_description(self) -> str:
-        return self._base_pizza.get_description() + ", " + self._crust.desc
+        return f"{self._base_pizza.get_description()}, {self._add_on.desc}"
     
     def get_cost(self) -> float:
-        return self._base_pizza.get_cost() + self._crust.price
+        return self._base_pizza.get_cost() + self._add_on.price
+    
+
+# Crust Decorators
+class CrustPizza(AddOnPizza):
+    def __init__(self, base_pizza: Pizza, crust: Crust):
+        super().__init__(base_pizza, crust)
     
 
 # Toppings
-class ToppingPizza(PizzaDecorator):
+class ToppingPizza(AddOnPizza):
     def __init__(self, base_pizza: Pizza, topping: Topping):
-        super().__init__(base_pizza)
-        self._topping = topping
-
-    def get_description(self):
-        return self._base_pizza.get_description() + ", " + self._topping.desc
-    
-    def get_cost(self):
-        return self._base_pizza.get_cost() + self._topping.price
+        super().__init__(base_pizza, topping)
     
     
 # Special
-class SpecialPizza(PizzaDecorator):
+class SpecialPizza(AddOnPizza):
     def __init__(self, base_pizza: Pizza, special: Special):
-        super().__init__(base_pizza)
-        self._special = special
-
-    def get_description(self) -> str:
-        return self._base_pizza.get_description() + ", " + self._special.desc
-    
-    def get_cost(self) -> float:
-        return self._base_pizza.get_cost() + self._special.price
+        super().__init__(base_pizza, special)
     
     
 class CartItem:
@@ -236,15 +227,3 @@ if __name__ == "__main__":
     order1 = Order(items, c1)
 
     order1.print_receipt()
-
-
-
-
-    
-
-
-        
-
-
-
-
