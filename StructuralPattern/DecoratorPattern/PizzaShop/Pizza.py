@@ -31,17 +31,19 @@ class Special(PricedItem):
     MARGARITA = (2.0, "Margarita")
     VEGGIEDELIGHT = (5.0, "Veggie Delight")
 
-    
 
-# Base Pizza class
-class Pizza(ABC):
+class Food(ABC):
     @abstractmethod
     def get_description(self) -> str:
         pass
 
     @abstractmethod
     def get_cost(self) -> float:
-        pass
+        pass  
+
+# Base Pizza class
+class Pizza(Food):
+    pass
 
 class SmallPizza(Pizza):
     def get_description(self) -> str:
@@ -187,6 +189,8 @@ class Customer:
 
     def get_name(self) -> str:
         return self._name
+
+# class PizzaShop
         
 class Order:
     DELIVERY_FEE = 3.99

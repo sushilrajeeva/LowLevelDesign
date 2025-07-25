@@ -76,7 +76,7 @@ You *may* implement separate decorators (`CrustPizza`, `ToppingPizza`, `SpecialP
 """
 
 from abc import ABC, abstractmethod
-from typing import List
+from typing import List, Optional
 
 from enum import Enum
 
@@ -191,6 +191,45 @@ class Customer:
     def get_name(self) -> str:
         return self._name
     
+class BasePizzaFactory:
+    @staticmethod
+    def get_base_pizza_size(size: Size) -> Pizza:
+        return SizePizza(size)
+    
+class AddonPizzaFactory:
+    @staticmethod
+    def get_addon_pizza(base_pizza: Pizza ,priced_item: PricedItem) -> Pizza:
+        return AddOnPizza(base_pizza, priced_item) 
+    
+class FoodBuilder:
+    @abstractmethod
+    def make_food(self, quantity: int) -> CartItem:
+        pass
+
+class PizzaBuilder(FoodBuilder):
+    def __init__(self, size: Size = Size.SMALL, crust: Optional[Crust] = None, toppings: Optional[List[Topping]] = None, special: Optional[Special] = None):
+        self._size = size
+        self._crust = crust
+        self._toppings = toppings
+        self._special = special
+        self._pizza = None
+
+    def _build_pizza(self, quantity: int = 1) -> CartItem:
+        self._pizza = BasePizzaFactory.get_base_pizza_size(self._size)
+        if self._crust:
+            self._pizza = AddonPizzaFactory.get_addon_pizza(self._pizza, self._crust)
+        if self._toppings:
+            for topping in self._toppings:
+                self._pizza = AddonPizzaFactory.get_addon_pizza(self._pizza, topping)
+        if self._special:
+            self._pizza = AddonPizzaFactory.get_addon_pizza(self._pizza, self._special)
+
+        return CartItem(self._pizza, quantity)
+    
+    def make_food(self, quantity: int = 1):
+        return self._build_pizza(quantity)
+
+        
 class Order:
     DELIVERY_FEE = 3.99
     _next_id= 1
@@ -221,11 +260,17 @@ class Order:
     
 if __name__ == "__main__":
     c1 = Customer("Sushil Bhandary")
-    p1 = SpecialPizza(ToppingPizza(ToppingPizza(CrustPizza(SizePizza(Size.LARGE), Crust.REGULAR), Topping.MUSHROOM), Topping.EXTRACHEESE), Special.FARMHOUSE)
-    p2 = SpecialPizza(SizePizza(Size.MEDIUM), Special.VEGGIEDELIGHT)
-    p3 = CrustPizza(ToppingPizza(SizePizza(Size.SMALL), Topping.EXTRACHEESE), Crust.THIN)
+    topping_list1: List[Topping] = [Topping.MUSHROOM, Topping.EXTRACHEESE]
+    p1 = PizzaBuilder(Size.LARGE, Crust.REGULAR, topping_list1, Special.FARMHOUSE).make_food()
+    p2 = PizzaBuilder(Size.MEDIUM, special=Special.VEGGIEDELIGHT).make_food(2)
+    topping_list3: List[Topping] = [Topping.EXTRACHEESE]
+    p3 = PizzaBuilder(Size.SMALL, Crust.THIN, topping_list3).make_food(3)
 
-    items: List[CartItem] = [CartItem(p1, 1), CartItem(p2, 2), CartItem(p3, 3)]
+    # p1 = SpecialPizza(ToppingPizza(ToppingPizza(CrustPizza(SizePizza(Size.LARGE), Crust.REGULAR), Topping.MUSHROOM), Topping.EXTRACHEESE), Special.FARMHOUSE)
+    # p2 = SpecialPizza(SizePizza(Size.MEDIUM), Special.VEGGIEDELIGHT)
+    # p3 = CrustPizza(ToppingPizza(SizePizza(Size.SMALL), Topping.EXTRACHEESE), Crust.THIN)
+
+    items: List[CartItem] = [p1, p2, p3]
     
     order1 = Order(items, c1)
 
